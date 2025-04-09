@@ -1,0 +1,78 @@
+[gd_resource type="Resource" script_class="RegistryCollection" load_steps=8 format=3 uid="uid://cx1do2l5hcbg8"]
+
+[ext_resource type="Script" uid="uid://counuj1l33fav" path="res://addons/resource_registry/data/registry.gd" id="1_g76xr"]
+[ext_resource type="Script" uid="uid://cps0w3c1g6x35" path="res://addons/resource_registry/data/registry_collection.gd" id="2_hwpud"]
+[ext_resource type="Script" uid="uid://q25om8hee1co" path="res://addons/resource_registry/editor/registry_editor.gd" id="3_wdnj0"]
+
+[sub_resource type="Resource" id="Resource_g76xr"]
+resource_name = "Addon Scripts 1"
+script = ExtResource("1_g76xr")
+name = &"Addon Scripts 1"
+resource_to_id = Dictionary[Resource, int]({
+ExtResource("1_g76xr"): 0,
+ExtResource("3_wdnj0"): 2
+})
+id_to_resource = Dictionary[int, Resource]({
+0: ExtResource("1_g76xr"),
+2: ExtResource("3_wdnj0")
+})
+directory = "res://addons"
+scan_subdirectories = true
+type = &"GDScript"
+use_exact_type = true
+metadata/_custom_type_script = "uid://counuj1l33fav"
+
+[sub_resource type="Resource" id="Resource_hwpud"]
+resource_name = "Addon Scripts 2"
+script = ExtResource("1_g76xr")
+name = &"Addon Scripts 2"
+resource_to_id = Dictionary[Resource, int]({
+ExtResource("1_g76xr"): 0,
+ExtResource("3_wdnj0"): 2
+})
+id_to_resource = Dictionary[int, Resource]({
+0: ExtResource("1_g76xr"),
+2: ExtResource("3_wdnj0")
+})
+directory = "res://addons"
+scan_subdirectories = true
+type = &"GDScript"
+use_exact_type = true
+metadata/_custom_type_script = "uid://counuj1l33fav"
+
+[sub_resource type="Resource" id="Resource_b24m1"]
+resource_name = "Addon Scripts 3"
+script = ExtResource("1_g76xr")
+name = &"Addon Scripts 3"
+resource_to_id = Dictionary[Resource, int]({
+ExtResource("1_g76xr"): 0
+})
+id_to_resource = Dictionary[int, Resource]({
+0: ExtResource("1_g76xr")
+})
+directory = "res://addons/resource_registry/data"
+scan_subdirectories = false
+type = &"GDScript"
+use_exact_type = true
+metadata/_custom_type_script = "uid://counuj1l33fav"
+
+[sub_resource type="Resource" id="Resource_vphbn"]
+resource_name = "Addon Scripts 4"
+script = ExtResource("1_g76xr")
+name = &"Addon Scripts 4"
+resource_to_id = Dictionary[Resource, int]({
+ExtResource("3_wdnj0"): 0
+})
+id_to_resource = Dictionary[int, Resource]({
+0: ExtResource("3_wdnj0")
+})
+directory = "res://addons/resource_registry/editor"
+scan_subdirectories = false
+type = &"GDScript"
+use_exact_type = true
+metadata/_custom_type_script = "uid://counuj1l33fav"
+
+[resource]
+script = ExtResource("2_hwpud")
+registries = Array[ExtResource("1_g76xr")]([SubResource("Resource_g76xr"), SubResource("Resource_hwpud"), SubResource("Resource_b24m1"), SubResource("Resource_vphbn")])
+metadata/_custom_type_script = "uid://cps0w3c1g6x35"
