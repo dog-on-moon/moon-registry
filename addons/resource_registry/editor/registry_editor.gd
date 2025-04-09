@@ -15,7 +15,12 @@ func _ready() -> void:
 	#reload_button.icon = EditorInterface.get_editor_theme().get_icon("Reload", "EditorIcons")
 	if self == get_tree().edited_scene_root: return
 	reload_button.pressed.connect(plugin.reload)
-	RegistryCollection.get_collection().registries.map(add_registry)
+	create_button.pressed.connect(_create_registry)
+	var c := RegistryCollection.get_collection()
+	c.registries.map(add_registry)
+	c.registry_added.connect(add_registry)
+	c.registry_removed.connect(remove_registry)
+	c.registry_reordered.connect(update_registry_styles)
 	_rescan_complete()
 
 const REGISTRY_PANEL = preload("res://addons/resource_registry/editor/registry_panel.tscn")
@@ -45,10 +50,19 @@ func remove_registry(r: Registry):
 	r.rescan_complete.disconnect(_rescan_complete)
 
 func update_registry_styles():
-	for idx in registry_panels.size():
-		var panel := registry_panels[idx]
-		var sb := alt_style_box if idx % 2 else base_style_box
-		panel.add_theme_stylebox_override(&"panel", sb)
+	var c := RegistryCollection.get_collection()
+	for idx in c.registries.size():
+		var r: Registry = c.registries[idx]
+		var panel: Control = registry_to_panel.get(r, null)
+		if panel:
+			registry_container.move_child(panel, idx)
+			var sb := alt_style_box if idx % 2 else base_style_box
+			panel.add_theme_stylebox_override(&"panel", sb)
+
+func _create_registry():
+	var registry := Registry.new()
+	RegistryCollection.get_collection().add_registry(registry)
+	EditorInterface.inspect_object(registry)
 
 func _rescan_complete():
 	RegistryCollection.get_collection().save()

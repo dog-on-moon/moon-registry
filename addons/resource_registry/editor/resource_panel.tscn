@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://18t3ksg6s8r5" path="res://icon.svg" id="2_v8kn4"]
 
 [node name="ResourcePanel" type="Button"]
-custom_minimum_size = Vector2(128, 16)
+custom_minimum_size = Vector2(160, 16)
 offset_right = 128.0
 offset_bottom = 27.0
 theme_override_constants/icon_max_width = 16

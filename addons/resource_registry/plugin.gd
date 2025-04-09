@@ -28,7 +28,7 @@ func _get_plugin_icon():
 	return EditorInterface.get_editor_theme().get_icon("Object", "EditorIcons")
 
 func reload():
-	print('Reloading Registry Editor')
 	_exit_tree()
 	_enter_tree()
 	_make_visible(true)
+	print('Registry Editor reloaded.')

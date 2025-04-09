@@ -9,23 +9,23 @@ signal rescan_requested
 signal rescan_complete
 
 ## The name associated with the registry.
-@export var name := &"":
+@export var name := &"New Registry":
 	set(x):
 		name = x
 		resource_name = x
 		name_changed.emit()
 
 ## An optional icon associated with the registry.
-@export var icon: Texture2D:
+@export var icon: Texture2D = null:
 	set(x):
 		icon = x
 		icon_changed.emit()
 
 ## A mapping between resource to unique resource ID.
-@export var resource_to_id: Dictionary[Resource, int] = {}
+@export_storage var resource_to_id: Dictionary[Resource, int] = {}
 
 ## A mapping between unique resource ID to resource.
-@export var id_to_resource: Dictionary[int, Resource] = {}
+@export_storage var id_to_resource: Dictionary[int, Resource] = {}
 
 @export_group("Directory")
 ## The target directory where resources are scanned from.
@@ -35,14 +35,14 @@ signal rescan_complete
 		rescan_requested.emit()
 
 ## Determines if subdirectories should be scanned for resources within the target directory.
-@export var scan_subdirectories := true:
+@export var scan_subdirectories := false:
 	set(x):
 		scan_subdirectories = x
 		rescan_requested.emit()
 
 @export_group("Type")
 ## The string type of the Registry (Resource, PackedScene, GDScript, etc)
-@export var type := &"":
+@export var type := &"Resource":
 	set(x):
 		type = x
 		rescan_requested.emit()
@@ -64,17 +64,19 @@ func get_resource(id: int) -> Resource:
 func get_id(resource: Resource) -> int:
 	return id_to_resource.get(resource, -1)
 
+var _all_resources_cache: Array = []
+
 ## Returns all resources within a registry.
 func get_all_resources() -> Array:
-	return resource_to_id.keys()
+	if Engine.is_editor_hint():
+		return resource_to_id.keys()
+	if not _all_resources_cache:
+		_all_resources_cache = resource_to_id.keys()
+	return _all_resources_cache
 
 ## Counts the number of resources inside the registry.
 func get_resource_count() -> int:
 	return resource_to_id.size()
-
-static var _packed_scene_icon: Texture2D
-static var _script_icon: Texture2D
-static var _object_icon: Texture2D
 
 ## Returns an icon associated with this registry.
 func get_icon(resource: Resource = null) -> Texture2D:
@@ -85,25 +87,13 @@ func get_icon(resource: Resource = null) -> Texture2D:
 			var value := resource.get(prop.name)
 			if value and value is Texture2D:
 				return value
-	match type:
-		&"PackedScene":
-			if not _packed_scene_icon:
-				var ei := Engine.get_singleton(&"EditorInterface")
-				if ei:
-					_packed_scene_icon = ei.get_editor_theme().get_icon("PackedScene", "EditorIcons")
-			return _packed_scene_icon
-		&"GDScript":
-			if not _script_icon:
-				var ei := Engine.get_singleton(&"EditorInterface")
-				if ei:
-					_script_icon = ei.get_editor_theme().get_icon("Script", "EditorIcons")
-			return _script_icon
-		_:
-			if not _object_icon:
-				var ei := Engine.get_singleton(&"EditorInterface")
-				if ei:
-					_object_icon = ei.get_editor_theme().get_icon("Object", "EditorIcons")
-			return _object_icon
+	var ei := Engine.get_singleton(&"EditorInterface")
+	if ei:
+		var t: Theme = ei.get_editor_theme()
+		if t.has_icon(type, &"EditorIcons"):
+			return t.get_icon(type, &"EditorIcons")
+		return t.get_icon(&"Object", &"EditorIcons")
+	return null
 
 func get_resource_name(resource: Resource = null) -> String:
 	if resource:
@@ -124,10 +114,10 @@ func rescan():
 		_resource_map[r] = null
 	
 	# Clear any dead resources.
-	#for existing_resource in resource_to_id:
-		#if existing_resource not in _resource_map:
-			#id_to_resource.erase(resource_to_id[existing_resource])
-			#resource_to_id.erase(existing_resource)
+	for existing_resource in resource_to_id.keys():
+		if existing_resource not in _resource_map:
+			id_to_resource.erase(resource_to_id[existing_resource])
+			resource_to_id.erase(existing_resource)
 	
 	# Add new resources.
 	var _id := 0
@@ -142,51 +132,75 @@ func rescan():
 	rescan_complete.emit()
 
 func _load_directory(path: String, extensions: PackedStringArray) -> Array[Resource]:
+	var resources: Array[Resource] = []
+	if not path:
+		return resources
 	if not path.ends_with("/"):
 		path += '/'
 	if not DirAccess.dir_exists_absolute(path):
 		push_error("Registry: could not find path: %s" % path)
 		return []
-
-	# First need to grab all relevant file paths
-	var resources: Array[Resource] = []
 	var dir: DirAccess = DirAccess.open(path)
 	if dir:
 		dir.list_dir_begin()
 		var file_name = dir.get_next()
+		var c := RegistryCollection.get_collection()
 		while file_name != "":
-			if dir.current_is_dir() and scan_subdirectories:
-				resources.append_array(_load_directory(path + file_name, extensions))
+			if dir.current_is_dir():
+				if not (path + file_name).begins_with("res://.") and scan_subdirectories:
+					resources.append_array(_load_directory(path + file_name, extensions))
 			else:
-				var valid_ext := extensions.size() > 0
-				for ext in extensions:
-					if file_name.ends_with(ext):
-						valid_ext = true
-						break
-				if valid_ext:
-					var res: Resource = load(path + file_name)
-					var valid := false
-					if not type:
-						valid = true
-					else:
-						var script: Script = res.get_script()
-						if script:
-							if script.get_global_name() == type:
-								valid = true
-							elif not use_exact_type:
-								while script:
-									script = script.get_base_script()
-									if script.get_global_name() == type:
-										valid = true
-										break
+				var invalid_ext := false
+				if file_name.ends_with(".uid"):
+					invalid_ext = true
+				elif file_name.ends_with(".import"):
+					invalid_ext = true
+				elif file_name.ends_with(".cfg"):
+					invalid_ext = true
+				elif file_name.ends_with(".txt"):
+					invalid_ext = true
+				elif file_name.ends_with("LICENSE"):
+					invalid_ext = true
+				elif file_name.ends_with("godot"):
+					invalid_ext = true
+				elif file_name.begins_with("."):
+					invalid_ext = true
+				if not invalid_ext:
+					var valid_ext := extensions.size() == 0
+					for ext in extensions:
+						if file_name.ends_with(ext):
+							valid_ext = true
+							break
+					if valid_ext:
+						var res: Resource = load(path + file_name)
+						var valid := false
+						if res == c:
+							pass
+						elif not type:
+							valid = true
 						else:
-							if res.get_class() == type:
-								valid = true
-							elif not use_exact_type and ClassDB.is_parent_class(res.get_class(), type):
-								valid = true
-					if valid:
-						resources.append(res)
-					break
+							var script: Script = res.get_script()
+							if script:
+								if script.get_global_name() == type:
+									valid = true
+								elif not use_exact_type:
+									if res.get_class() == type:
+										valid = true
+									elif ClassDB.is_parent_class(res.get_class(), type):
+										valid = true
+									else:
+										while script:
+											script = script.get_base_script()
+											if script.get_global_name() == type:
+												valid = true
+												break
+							else:
+								if res.get_class() == type:
+									valid = true
+								elif not use_exact_type and ClassDB.is_parent_class(res.get_class(), type):
+									valid = true
+						if valid:
+							resources.append(res)
 			file_name = dir.get_next()
 	return resources
 

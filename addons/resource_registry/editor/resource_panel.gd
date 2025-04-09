@@ -17,3 +17,10 @@ extends Button
 func _pressed() -> void:
 	if resource:
 		EditorInterface.inspect_object(resource)
+
+func _input(event: InputEvent) -> void:
+	if is_visible_in_tree():
+		if event is InputEventMouseButton:
+			if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+				if get_global_rect().has_point(get_global_mouse_position()):
+					EditorInterface.select_file(resource.resource_path)

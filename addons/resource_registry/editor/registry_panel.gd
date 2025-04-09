@@ -1,10 +1,6 @@
 @tool
 extends PanelContainer
 
-signal request_sort_up
-signal request_sort_down
-signal request_delete
-
 @export var registry: Registry:
 	set(x):
 		if registry:
@@ -39,18 +35,17 @@ func _ready() -> void:
 	#sort_down_button.icon = 	EditorInterface.get_editor_theme().get_icon("ArrowDown", "EditorIcons")
 	#filesystem_button.icon = 	EditorInterface.get_editor_theme().get_icon("Folder", "EditorIcons")
 	#delete_button.icon = 	EditorInterface.get_editor_theme().get_icon("Remove", "EditorIcons")
-	sort_up_button.pressed.connect(request_sort_up.emit)
-	sort_down_button.pressed.connect(request_sort_down.emit)
+	sort_up_button.pressed.connect(_request_sort_up)
+	sort_down_button.pressed.connect(_request_sort_down)
 	filesystem_button.pressed.connect(_open_filesystem)
-	delete_button.pressed.connect(request_delete.emit)
+	delete_button.pressed.connect(_request_delete)
 	open_button.pressed.connect(_toggle_visibility)
 	
 	_update_icon()
 
 func _toggle_visibility():
 	margin_container.visible = not margin_container.visible
-	if registry and margin_container.visible:
-		EditorInterface.inspect_object(registry)
+	EditorInterface.inspect_object(registry)
 
 func _update_name():
 	if registry:
@@ -64,8 +59,26 @@ func _update_icon():
 	else:
 		open_button.icon = registry.get_icon() if registry else null
 
+func _request_sort_up():
+	var c := RegistryCollection.get_collection()
+	c.sort_registry(registry, -1)
+
+func _request_sort_down():
+	var c := RegistryCollection.get_collection()
+	c.sort_registry(registry, 1)
+
 func _open_filesystem():
 	EditorInterface.select_file(registry.directory)
+
+func _request_delete():
+	var win := ConfirmationDialog.new()
+	win.title = "Delete Registry"
+	win.dialog_text = "Delete registry '%s'?\n(This is permanent!)" % registry.name
+	win.confirmed.connect(func ():
+		var c := RegistryCollection.get_collection()
+		c.remove_registry(registry)
+	)
+	EditorInterface.popup_dialog_centered(win)
 
 func _rescan_requested():
 	if registry:
@@ -77,6 +90,8 @@ const ResourcePanel = preload("res://addons/resource_registry/editor/resource_pa
 var panels: Array[ResourcePanel] = []
 
 func _reload():
+	_update_name()
+	
 	for p in panels:
 		p.queue_free()
 	panels.clear()

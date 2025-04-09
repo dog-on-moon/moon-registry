@@ -3,23 +3,36 @@ extends Resource
 class_name RegistryCollection
 ## A resource containing all defined registries within a project.
 
+signal registry_added(r: Registry)
+signal registry_removed(r: Registry)
+signal registry_reordered
+
 @export var registries: Array[Registry] = []
 
 func add_registry(r: Registry) -> bool:
 	if r not in registries:
 		registries.append(r)
+		registry_added.emit(r)
 		save()
-		emit_changed()
 		return true
 	return false
 
 func remove_registry(r: Registry) -> bool:
 	if r in registries:
 		registries.erase(r)
+		registry_removed.emit(r)
 		save()
-		emit_changed()
 		return true
 	return false
+
+func sort_registry(r: Registry, offset := 0):
+	if r in registries:
+		var idx := registries.find(r)
+		registries.remove_at(idx)
+		var reinsert_pos := idx + offset
+		reinsert_pos = clampi(reinsert_pos, 0, registries.size())
+		registries.insert(reinsert_pos, r)
+		registry_reordered.emit()
 
 ## A cache for all named registries.
 var _name_to_registry: Dictionary[StringName, Registry] = {}
