@@ -60,6 +60,8 @@ static func get_collection() -> RegistryCollection:
 			ResourceSaver.save(_self, SAVE_PATH)
 		else:
 			_self = load(SAVE_PATH)
+			for r in _self.registries:
+				r._load()
 	return _self
 
 func save():

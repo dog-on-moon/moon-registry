@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RegistryCollection" load_steps=11 format=3 uid="uid://cx1do2l5hcbg8"]
+[gd_resource type="Resource" script_class="RegistryCollection" load_steps=10 format=3 uid="uid://cx1do2l5hcbg8"]
 
 [ext_resource type="Script" uid="uid://counuj1l33fav" path="res://addons/resource_registry/data/registry.gd" id="1_g76xr"]
 [ext_resource type="Script" uid="uid://cps0w3c1g6x35" path="res://addons/resource_registry/data/registry_collection.gd" id="2_hwpud"]
@@ -6,18 +6,12 @@
 [ext_resource type="Script" uid="uid://b6qjqcvbbrp31" path="res://addons/resource_registry/editor/registry_panel.gd" id="5_wdnj0"]
 [ext_resource type="Script" uid="uid://cifm8knkw0etw" path="res://addons/resource_registry/editor/resource_panel.gd" id="6_2nd4q"]
 [ext_resource type="Script" uid="uid://bd0oali0rnllu" path="res://addons/resource_registry/plugin.gd" id="6_he0c8"]
-[ext_resource type="Texture2D" uid="uid://18t3ksg6s8r5" path="res://icon.svg" id="11_pp21t"]
 
 [sub_resource type="Resource" id="Resource_bfo2e"]
 resource_name = "all_textures"
 script = ExtResource("1_g76xr")
 name = &"all_textures"
-resource_to_id = Dictionary[Resource, int]({
-ExtResource("11_pp21t"): 0
-})
-id_to_resource = Dictionary[int, Resource]({
-0: ExtResource("11_pp21t")
-})
+id_to_resource = Dictionary[int, Resource]({})
 directory = "res://"
 scan_subdirectories = true
 type = &"Texture2D"
@@ -27,14 +21,6 @@ use_exact_type = false
 resource_name = "resource_registry_scripts"
 script = ExtResource("1_g76xr")
 name = &"resource_registry_scripts"
-resource_to_id = Dictionary[Resource, int]({
-ExtResource("1_g76xr"): 0,
-ExtResource("3_wdnj0"): 2,
-ExtResource("6_he0c8"): 1,
-ExtResource("2_hwpud"): 3,
-ExtResource("5_wdnj0"): 4,
-ExtResource("6_2nd4q"): 5
-})
 id_to_resource = Dictionary[int, Resource]({
 0: ExtResource("1_g76xr"),
 1: ExtResource("6_he0c8"),
@@ -53,11 +39,6 @@ metadata/_custom_type_script = "uid://counuj1l33fav"
 resource_name = "resource_registry_editor_scripts"
 script = ExtResource("1_g76xr")
 name = &"resource_registry_editor_scripts"
-resource_to_id = Dictionary[Resource, int]({
-ExtResource("3_wdnj0"): 0,
-ExtResource("5_wdnj0"): 1,
-ExtResource("6_2nd4q"): 2
-})
 id_to_resource = Dictionary[int, Resource]({
 0: ExtResource("3_wdnj0"),
 1: ExtResource("5_wdnj0"),

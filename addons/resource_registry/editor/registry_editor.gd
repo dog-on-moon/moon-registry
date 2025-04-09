@@ -64,5 +64,6 @@ func _create_registry():
 	RegistryCollection.get_collection().add_registry(registry)
 	EditorInterface.inspect_object(registry)
 
-func _rescan_complete():
-	RegistryCollection.get_collection().save()
+func _rescan_complete(changed := true):
+	if changed:
+		RegistryCollection.get_collection().save()

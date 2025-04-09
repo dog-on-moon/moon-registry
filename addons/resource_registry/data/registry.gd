@@ -6,7 +6,7 @@ class_name Registry
 signal name_changed
 signal icon_changed
 signal rescan_requested
-signal rescan_complete
+signal rescan_complete(changed: bool)
 
 ## The name associated with the registry.
 @export var name := &"New Registry":
@@ -22,7 +22,7 @@ signal rescan_complete
 		icon_changed.emit()
 
 ## A mapping between resource to unique resource ID.
-@export_storage var resource_to_id: Dictionary[Resource, int] = {}
+var resource_to_id: Dictionary[Resource, int] = {}
 
 ## A mapping between unique resource ID to resource.
 @export_storage var id_to_resource: Dictionary[int, Resource] = {}
@@ -56,13 +56,37 @@ signal rescan_complete
 		use_exact_type = x
 		rescan_requested.emit()
 
+func _load():
+	for id in id_to_resource:
+		resource_to_id[id_to_resource[id]] = id
+
 ## Returns a resource associated with a unique ID.
 func get_resource(id: int) -> Resource:
-	return resource_to_id.get(id, null)
+	return id_to_resource.get(id, null)
 
 ## Returns a unique ID associated with a resource.
 func get_id(resource: Resource) -> int:
-	return id_to_resource.get(resource, -1)
+	return resource_to_id.get(resource, -1)
+
+var _type_registry: Dictionary[GDScript, Array] = {}
+
+## Gets precise registry definitions of a type.
+func get_definitions_of_type(t: GDScript) -> Array:
+	if t not in _type_registry:
+		var types: Array = []
+		for res in get_all_resources():
+			if is_instance_of(res, t):
+				types.append(res)
+		_type_registry[t] = types
+	return _type_registry[t]
+
+## Determines if the registry has this resource.
+func has_definition(res: Resource) -> bool:
+	return res in resource_to_id
+
+## Determines if the registry has this id.
+func has_id(id: int) -> bool:
+	return id in id_to_resource
 
 var _all_resources_cache: Array = []
 
@@ -81,34 +105,53 @@ func get_resource_count() -> int:
 ## Returns an icon associated with this registry.
 func get_icon(resource: Resource = null) -> Texture2D:
 	if resource:
+		if resource.has_method(&"get_registry_icon"):
+			return resource.call(&"get_registry_icon")
 		if is_instance_of(resource, Texture2D):
 			return resource
 		for prop in resource.get_property_list():
 			var value := resource.get(prop.name)
 			if value and value is Texture2D:
 				return value
-	var ei := Engine.get_singleton(&"EditorInterface")
-	if ei:
-		var t: Theme = ei.get_editor_theme()
-		if t.has_icon(type, &"EditorIcons"):
-			return t.get_icon(type, &"EditorIcons")
-		return t.get_icon(&"Object", &"EditorIcons")
+	var default := get_cache_icon(type)
+	if not default:
+		return get_cache_icon(&"Object")
 	return null
 
 func get_resource_name(resource: Resource = null) -> String:
 	if resource:
+		if resource.has_method(&"get_registry_name"):
+			return resource.call(&"get_registry_name")
 		if resource.resource_name:
 			return resource.resource_name
 		if resource.resource_path:
 			return resource.resource_path.get_file()
 	return name
 
+static var _icon_cache: Dictionary[StringName, Texture2D] = {}
+static var _cache_theme: Theme = null
+
+static func get_cache_icon(sn: StringName) -> Texture2D:
+	if sn not in _icon_cache:
+		var ei := Engine.get_singleton(&"EditorInterface")
+		if ei:
+			if not _cache_theme:
+				_cache_theme = ei.get_editor_theme()
+			if _cache_theme.has_icon(sn, &"EditorIcons"):
+				_icon_cache[sn] = _cache_theme.get_icon(sn, &"EditorIcons")
+			else:
+				_icon_cache[sn] = null
+		else:
+			return null
+	return _icon_cache[sn]
+
 #region Rescan
 
 ## Rescans the registry, updating resource_to_id and id_to_resource.
-func rescan():
+func rescan() -> bool:
 	# Load all resources.
 	var resources := _load_directory(directory, get_valid_extensions())
+	var changed := false
 	var _resource_map: Dictionary[Resource, Object] = {}
 	for r in resources:
 		_resource_map[r] = null
@@ -118,6 +161,7 @@ func rescan():
 		if existing_resource not in _resource_map:
 			id_to_resource.erase(resource_to_id[existing_resource])
 			resource_to_id.erase(existing_resource)
+			changed = true
 	
 	# Add new resources.
 	var _id := 0
@@ -127,9 +171,11 @@ func rescan():
 				_id += 1
 			resource_to_id[resource] = _id
 			id_to_resource[_id] = resource
+			changed = true
 	
 	# We are done.
-	rescan_complete.emit()
+	rescan_complete.emit(changed)
+	return changed
 
 func _load_directory(path: String, extensions: PackedStringArray) -> Array[Resource]:
 	var resources: Array[Resource] = []
@@ -171,10 +217,10 @@ func _load_directory(path: String, extensions: PackedStringArray) -> Array[Resou
 						if file_name.ends_with(ext):
 							valid_ext = true
 							break
-					if valid_ext:
+					if valid_ext and (path + file_name):
 						var res: Resource = load(path + file_name)
 						var valid := false
-						if res == c:
+						if res == c or not res:
 							pass
 						elif not type:
 							valid = true
@@ -191,7 +237,9 @@ func _load_directory(path: String, extensions: PackedStringArray) -> Array[Resou
 									else:
 										while script:
 											script = script.get_base_script()
-											if script.get_global_name() == type:
+											if not script:
+												break
+											elif script.get_global_name() == type:
 												valid = true
 												break
 							else:
@@ -212,6 +260,9 @@ func get_valid_extensions() -> PackedStringArray:
 			suffixes.append(".tscn")
 		&"GDScript":
 			suffixes.append(".gd")
+		_:
+			suffixes.append(".tres")
+			suffixes.append(".res")
 	return suffixes
 
 #endregion

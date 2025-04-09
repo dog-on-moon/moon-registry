@@ -17,8 +17,7 @@ extends PanelContainer
 			registry.rescan_complete.connect(_reload)
 			registry.rescan_requested.connect(_rescan_requested)
 			registry.rescan()
-		else:
-			_reload()
+		_reload(true)
 		_update_name()
 		_update_icon()
 
@@ -26,6 +25,7 @@ extends PanelContainer
 @onready var sort_up_button: Button = %SortUpButton
 @onready var sort_down_button: Button = %SortDownButton
 @onready var filesystem_button: Button = %FilesystemButton
+@onready var reload_button: Button = %ReloadButton
 @onready var delete_button: Button = %DeleteButton
 @onready var margin_container: MarginContainer = %MarginContainer
 @onready var resource_container: HFlowContainer = %ResourceContainer
@@ -38,6 +38,7 @@ func _ready() -> void:
 	sort_up_button.pressed.connect(_request_sort_up)
 	sort_down_button.pressed.connect(_request_sort_down)
 	filesystem_button.pressed.connect(_open_filesystem)
+	reload_button.pressed.connect(_rescan_requested.bind(true))
 	delete_button.pressed.connect(_request_delete)
 	open_button.pressed.connect(_toggle_visibility)
 	
@@ -70,6 +71,13 @@ func _request_sort_down():
 func _open_filesystem():
 	EditorInterface.select_file(registry.directory)
 
+func _rescan_requested(force := false):
+	if registry:
+		if not force:
+			registry.rescan()
+		elif not registry.rescan():
+			_reload(true)
+
 func _request_delete():
 	var win := ConfirmationDialog.new()
 	win.title = "Delete Registry"
@@ -80,16 +88,14 @@ func _request_delete():
 	)
 	EditorInterface.popup_dialog_centered(win)
 
-func _rescan_requested():
-	if registry:
-		registry.rescan()
-
 const RESOURCE_PANEL = preload("res://addons/resource_registry/editor/resource_panel.tscn")
 const ResourcePanel = preload("res://addons/resource_registry/editor/resource_panel.gd")
 
 var panels: Array[ResourcePanel] = []
 
-func _reload():
+func _reload(changed := true):
+	if not changed:
+		return
 	_update_name()
 	
 	for p in panels:
@@ -99,9 +105,15 @@ func _reload():
 	if not registry:
 		return
 	
-	for res in registry.get_all_resources():
+	var resources := registry.get_all_resources()
+	resources.sort_custom(_sort_resources)
+	
+	for res in resources:
 		var panel: ResourcePanel = RESOURCE_PANEL.instantiate()
 		panel.registry = registry
 		panel.resource = res
 		panels.append(panel)
 		resource_container.add_child(panel)
+
+func _sort_resources(a: Resource, b: Resource):
+	return registry.get_resource_name(a) < registry.get_resource_name(b)
