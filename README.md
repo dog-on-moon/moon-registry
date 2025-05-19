@@ -6,7 +6,7 @@ moon-registry is a Resource plugin for Godot 4.4 that provides an API for access
 
 It features a new main screen editor for accessing all Registries.
 
-![video](https://github.com/dog-on-moon/moon-registry/blob/main/docs/readme/pic01.png)
+![screen-shot](https://github.com/dog-on-moon/moon-registry/blob/main/readme/pic01.png)
 
 ## 🗄️ Registry Collection
 
