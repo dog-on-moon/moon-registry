@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://faoc5wii134a"]
 
-[ext_resource type="Script" uid="uid://q25om8hee1co" path="res://addons/resource_registry/editor/registry_editor.gd" id="1_rebb8"]
+[ext_resource type="Script" uid="uid://q25om8hee1co" path="res://addons/moon-registry/editor/registry_editor.gd" id="1_rebb8"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rebb8"]
 content_margin_left = 2.0

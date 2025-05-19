@@ -49,7 +49,7 @@ func get_registry(n: StringName) -> Registry:
 
 #region Registry Load
 
-const SAVE_PATH := "res://addons/resource_registry/data/registry_collection.tres"
+const SAVE_PATH := "res://addons/moon-registry/data/registry_collection.tres"
 
 static var _self: RegistryCollection
 

@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://dpy68up7dtdj3"]
 
-[ext_resource type="Script" uid="uid://cifm8knkw0etw" path="res://addons/resource_registry/editor/resource_panel.gd" id="1_eymmy"]
+[ext_resource type="Script" uid="uid://cifm8knkw0etw" path="res://addons/moon-registry/editor/resource_panel.gd" id="1_eymmy"]
 [ext_resource type="Texture2D" uid="uid://18t3ksg6s8r5" path="res://icon.svg" id="2_v8kn4"]
 
 [node name="ResourcePanel" type="Button"]

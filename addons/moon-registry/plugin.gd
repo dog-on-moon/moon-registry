@@ -4,7 +4,7 @@ extends EditorPlugin
 var main_panel_instance
 
 func _enter_tree():
-	main_panel_instance = load("res://addons/resource_registry/editor/registry_editor.tscn").instantiate()
+	main_panel_instance = load("res://addons/moon-registry/editor/registry_editor.tscn").instantiate()
 	main_panel_instance.plugin = self
 	EditorInterface.get_editor_main_screen().add_child(main_panel_instance)
 	_make_visible(false)

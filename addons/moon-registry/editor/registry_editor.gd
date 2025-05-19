@@ -23,7 +23,7 @@ func _ready() -> void:
 	c.registry_reordered.connect(update_registry_styles)
 	_rescan_complete()
 
-const REGISTRY_PANEL = preload("res://addons/resource_registry/editor/registry_panel.tscn")
+const REGISTRY_PANEL = preload("res://addons/moon-registry/editor/registry_panel.tscn")
 
 var registry_to_panel: Dictionary[Registry, Control] = {}
 var registry_panels: Array[Control] = []

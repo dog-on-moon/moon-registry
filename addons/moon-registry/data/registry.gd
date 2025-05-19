@@ -71,17 +71,21 @@ func get_id(resource: Resource) -> int:
 var _type_registry: Dictionary[GDScript, Array] = {}
 
 ## Gets precise registry definitions of a type.
-func get_definitions_of_type(t: GDScript) -> Array:
+func get_resources_of_type(t: GDScript, exact_type := false) -> Array:
 	if t not in _type_registry:
 		var types: Array = []
-		for res in get_all_resources():
-			if is_instance_of(res, t):
-				types.append(res)
+		for res: Resource in get_all_resources():
+			if exact_type:
+				if res.script == t:
+					types.append(res)
+			else:
+				if is_instance_of(res, t):
+					types.append(res)
 		_type_registry[t] = types
 	return _type_registry[t]
 
 ## Determines if the registry has this resource.
-func has_definition(res: Resource) -> bool:
+func has_resource(res: Resource) -> bool:
 	return res in resource_to_id
 
 ## Determines if the registry has this id.

@@ -10,10 +10,19 @@ config_version=5
 
 [application]
 
-config/name="Resource Registry"
+config/name="moon-registry"
+config/description="A Registry class and editor plugin for viewing and managing mass resources. "
+config/version="1.0.0"
 config/features=PackedStringArray("4.4", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="uid://dkpo6nqysbe06"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/resource_registry/plugin.cfg")
+enabled=PackedStringArray("res://addons/moon-registry/plugin.cfg")
+
+[file_customization]
+
+folder_colors={
+"res://addons/": "purple",
+"res://docs/": "blue"
+}

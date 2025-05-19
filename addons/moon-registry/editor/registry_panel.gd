@@ -88,8 +88,8 @@ func _request_delete():
 	)
 	EditorInterface.popup_dialog_centered(win)
 
-const RESOURCE_PANEL = preload("res://addons/resource_registry/editor/resource_panel.tscn")
-const ResourcePanel = preload("res://addons/resource_registry/editor/resource_panel.gd")
+const RESOURCE_PANEL = preload("res://addons/moon-registry/editor/resource_panel.tscn")
+const ResourcePanel = preload("res://addons/moon-registry/editor/resource_panel.gd")
 
 var panels: Array[ResourcePanel] = []
 
